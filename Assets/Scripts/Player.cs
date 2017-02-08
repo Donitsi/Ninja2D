@@ -111,6 +111,17 @@ public class Player : MonoBehaviour {
             playerRigidbody.velocity = Vector2.zero;
         }
 
+
+        if (attack && !isGrounded && !this.playerAnimator.GetCurrentAnimatorStateInfo(1).IsTag("Attack"))
+        {
+            playerAnimator.SetTrigger("attack");
+        }
+
+        if (!attack && !this.playerAnimator.GetCurrentAnimatorStateInfo(1).IsTag("Attack"))
+        {
+            playerAnimator.ResetTrigger("attack");
+        }
+
         if (shoot && isGrounded && !this.playerAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Shoot"))
         {
             playerAnimator.SetTrigger("shoot");
@@ -118,6 +129,8 @@ public class Player : MonoBehaviour {
             playerRigidbody.velocity = Vector2.zero;
         }
 
+
+        // Shoots in the air
         if (shoot && !isGrounded && !this.playerAnimator.GetCurrentAnimatorStateInfo(1).IsTag("Shoot"))
         {
             playerAnimator.SetTrigger("shoot");
@@ -150,7 +163,6 @@ public class Player : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.R))
         {
             shoot = true;
-            airShoot = true;
         }
     }
 
