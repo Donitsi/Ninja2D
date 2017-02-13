@@ -16,12 +16,11 @@ public class Player : MonoBehaviour {
     private bool shoot;
     private bool airShoot;
 
-    //[SerializeField]
-    //private Transform[] groundPoints;
+    [SerializeField]
+    private Transform[] groundPoints;
 
 
-    private bool isGrounded = false;
-    public Transform groundCheck;
+    private bool isGrounded;
     private float groundRadius = 0.2f;
     public LayerMask whatIsGround;
 
@@ -49,18 +48,9 @@ public class Player : MonoBehaviour {
     // Update is called once per frame
     void FixedUpdate () {
 
-        // Checks if we're hitting the ground
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, whatIsGround);
-        playerAnimator.SetBool("Ground", isGrounded);
-
         float horizontal = Input.GetAxis("Horizontal");
-        playerAnimator.SetFloat("Speed", Mathf.Abs(horizontal));
 
-        playerRigidbody.velocity = new Vector2(horizontal * speedMovement, playerRigidbody.velocity.y);
-
-        //rigidbody2D.velocity = new Vector2(horizontal * speedMovement, rigidbody2D.velocity.y);
-
-        //isGrounded = IsGrounded();
+        isGrounded = IsGrounded();
 
         HandleMovement(horizontal);
 
@@ -80,11 +70,11 @@ public class Player : MonoBehaviour {
             playerAnimator.SetBool("landing", true);
         }
 
-        //if (!playerAnimator.GetBool("slide") && !this.playerAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Attack") /*&& (isGrounded || airControl)*/)
-        //{
-        //    playerRigidbody.velocity = new Vector2(horizontal * speedMovement, playerRigidbody.velocity.y);
+        if (!playerAnimator.GetBool("slide") && !this.playerAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Attack") /*&& (isGrounded || airControl)*/)
+        {
+            playerRigidbody.velocity = new Vector2(horizontal * speedMovement, playerRigidbody.velocity.y);
 
-        //}
+        }
 
         // Checks if the player is on the ground or not
         if (isGrounded && jump)
@@ -201,30 +191,30 @@ public class Player : MonoBehaviour {
 
 
     // Checks if player is on the ground or not
-    //private bool IsGrounded()
-    //{
-    //    // if the player is falling or not moving 
-    //    if (playerRigidbody.velocity.y <= 0)
-    //    {
-    //        foreach (Transform point in groundPoints)
-    //        {
-    //            Collider2D[] colliders = Physics2D.OverlapCircleAll(point.position, groundRadius, whatIsGround);
+    private bool IsGrounded()
+    {
+        // if the player is falling or not moving 
+        if (playerRigidbody.velocity.y <= 0)
+        {
+            foreach (Transform point in groundPoints)
+            {
+                Collider2D[] colliders = Physics2D.OverlapCircleAll(point.position, groundRadius, whatIsGround);
 
-    //            for (int i = 0; i < colliders.Length; i++)
-    //            {
-    //                // if the current collider - at GroundPoint's position isn't the player
-    //                if (colliders[i].gameObject != gameObject)
-    //                {
-    //                    playerAnimator.ResetTrigger("jump");
-    //                    playerAnimator.SetBool("landing", false);
-    //                    return true;
-    //                }
-    //            }
-    //        }
-    //    }
+                for (int i = 0; i < colliders.Length; i++)
+                {
+                    // if the current collider - at GroundPoint's position isn't the player
+                    if (colliders[i].gameObject != gameObject)
+                    {
+                        playerAnimator.ResetTrigger("jump");
+                        playerAnimator.SetBool("landing", false);
+                        return true;
+                    }
+                }
+            }
+        }
 
-    //    return false;
-    //}
+        return false;
+    }
 
     private void HandleLayers()
     {
