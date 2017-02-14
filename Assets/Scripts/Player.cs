@@ -40,6 +40,9 @@ public class Player : MonoBehaviour {
 
     private float jumpForce = 550f;
 
+    [SerializeField]
+    private GameObject BulletPref;
+
 
     public Rigidbody2D MyRigidbody { get; set; }
 
@@ -128,6 +131,7 @@ public class Player : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.V))
         {
             myAnimator.SetTrigger("shoot");
+            ShootPref(0);
         }
     }
 
@@ -185,6 +189,20 @@ public class Player : MonoBehaviour {
         else
         {
             myAnimator.SetLayerWeight(1, 0);
+        }
+    }
+
+    public void ShootPref(int value)
+    {
+        if (facingRight)
+        {
+            GameObject tmp = (GameObject)Instantiate(BulletPref, transform.position, Quaternion.Euler(new Vector3(0, 0,-90)));
+            tmp.GetComponent<Bullet>().Initialize(Vector2.right);
+        }
+        else
+        {
+            GameObject tmp = (GameObject)Instantiate(BulletPref, transform.position, Quaternion.Euler(new Vector3(0, 0, -90)));
+            tmp.GetComponent<Bullet>().Initialize(Vector2.left);
         }
     }
 }
