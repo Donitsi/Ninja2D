@@ -18,7 +18,6 @@ public class CollisionTrigger : MonoBehaviour {
 	void Start () {
 
         playerCollider = GameObject.Find("Player").GetComponent<BoxCollider2D>();
-        //playerCollider2 = GameObject.Find("Player").GetComponent<CircleCollider2D>();
         Physics2D.IgnoreCollision(platformCollider, platformTrigger, true);
 	}
 
@@ -27,7 +26,7 @@ public class CollisionTrigger : MonoBehaviour {
         if (collision.gameObject.name == "Player")
         {
             Physics2D.IgnoreCollision(platformCollider, playerCollider, true);
-            //Physics2D.IgnoreCollision(platformCollider, playerCollider2, true);
+
         }
     }
 
@@ -36,7 +35,6 @@ public class CollisionTrigger : MonoBehaviour {
         if(other.gameObject.name == "Player")
         {
             Physics2D.IgnoreCollision(platformCollider, playerCollider, false);
-            //Physics2D.IgnoreCollision(platformCollider, playerCollider2, false);
         }
     }
 }

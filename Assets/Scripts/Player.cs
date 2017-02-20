@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour {
+public class Player : Character {
 
     private static Player instance;
 
@@ -23,46 +23,26 @@ public class Player : MonoBehaviour {
         }
     }
 
-    private Animator myAnimator;
-
-    private float movementSpeed = 10f;
-
-    private bool facingRight;
 
 
-    [SerializeField]
-    private Transform[] groundPoints;
-    private float groundRadius = 0.2f;
-    public LayerMask whatIsGround;
+    //private bool facingRight;
+
+    public bool OnGround { get; set; }
+
 
     [SerializeField]
     private bool airControl;
 
-    private float jumpForce = 550f;
-
-    [SerializeField]
-    private GameObject BulletPref;
-
 
     public Rigidbody2D MyRigidbody { get; set; }
-
-    public bool Attack { get; set; }
-
-    public bool Slide { get; set; }
-
-    public bool Jump { get; set; }
-
-    public bool OnGround { get; set; }
-
-    public bool Shoot { get; set; }
 
 
 
     // Use this for initialization
-    void Start () {
+    public override void Start () {
 
         facingRight = true;
-
+        base.Start();
         // reference to rigidbody
         MyRigidbody = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
@@ -95,9 +75,10 @@ public class Player : MonoBehaviour {
             myAnimator.SetBool("land", true);
         }
 
-        if(!Attack && !Slide && (OnGround || airControl))
+        if(!Attack && !Slide /*&& (OnGround || airControl)*/)
         {
             MyRigidbody.velocity = new Vector2(horizontal * movementSpeed, MyRigidbody.velocity.y);
+            
         }
 
         if(Jump && MyRigidbody.velocity.y == 0)
@@ -131,7 +112,7 @@ public class Player : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.V))
         {
             myAnimator.SetTrigger("shoot");
-            ShootPref(0);
+            myAnimator.SetTrigger("shootAir");
         }
     }
 
@@ -139,16 +120,18 @@ public class Player : MonoBehaviour {
     {
         if (horizontal > 0 && !facingRight || horizontal < 0 && facingRight)
         {
-            // Make it false when it's true and vice verca 
-            facingRight = !facingRight;
-            
-            // Reference to vector scale
-            Vector3 theScale = transform.localScale;
+            //// Make it false when it's true and vice verca 
+            //facingRight = !facingRight;
 
-            theScale.x *= -1;
+            //// Reference to vector scale
+            //Vector3 theScale = transform.localScale;
 
-            // adding to the player's scale
-            transform.localScale = theScale;
+            //theScale.x *= -1;
+
+            //// adding to the player's scale
+            //transform.localScale = theScale;
+
+            ChangeDirection();
         }
     }
 
@@ -192,17 +175,28 @@ public class Player : MonoBehaviour {
         }
     }
 
-    public void ShootPref(int value)
+    public override void ShootPref(int value)
     {
-        if (facingRight)
+
+        if ( OnGround && value == 0)
         {
-            GameObject tmp = (GameObject)Instantiate(BulletPref, transform.position, Quaternion.Euler(new Vector3(0, 0,-90)));
-            tmp.GetComponent<Bullet>().Initialize(Vector2.right);
+            base.ShootPref(value);
         }
-        else
+        else if(!OnGround && value == 1)
         {
-            GameObject tmp = (GameObject)Instantiate(BulletPref, transform.position, Quaternion.Euler(new Vector3(0, 0, -90)));
-            tmp.GetComponent<Bullet>().Initialize(Vector2.left);
+            base.ShootPref(value);
+        }
+        
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Bullet")
+        {
+            //Destroy(gameObject);
+
+            // Destroy bullet when hit
+            Destroy(collision.gameObject);
         }
     }
 }
