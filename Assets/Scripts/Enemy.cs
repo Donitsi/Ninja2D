@@ -100,6 +100,21 @@ public class Enemy : Character {
         }
     }
 
+    public override void ChangeDirection()
+    {
+        Transform tmp = transform.FindChild("EnemyHealthBarCanvas").transform;
+
+        Vector3 pos = tmp.position;
+
+        tmp.SetParent(null);
+
+        base.ChangeDirection();
+
+        tmp.SetParent(transform);
+
+        tmp.position = pos;
+    }
+
     public void RemoveTarget()
     {
         Target = null;
