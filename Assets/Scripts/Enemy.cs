@@ -29,6 +29,9 @@ public class Enemy : Character {
     [SerializeField]
     private Transform rightEdge;
 
+    private AudioSource enemyAudio;
+
+
     public bool inMeleeRange
     {
         get
@@ -72,6 +75,7 @@ public class Enemy : Character {
         ChangeState(new IdleState());
         Player.Instance.Dead += new DeadEventHandler(RemoveTarget);
         MyAnimator = GetComponent<Animator>();
+        enemyAudio = GetComponent<AudioSource>();
 
 	}
 	// Update is called once per frame
@@ -85,6 +89,11 @@ public class Enemy : Character {
             }
 
             LookAtTarget();
+        }
+
+        if (IsDead)
+        {
+            //Drop item 
         }
 	}
 
@@ -225,9 +234,10 @@ public class Enemy : Character {
 
     public override IEnumerator TakeDamage()
     {
-        healthStat.CurrentVal -= 10;
+        
         if (!IsDead)
         {
+            healthStat.CurrentVal -= 10;
             MyAnimator.SetTrigger("damage");
         }
         else
@@ -239,8 +249,8 @@ public class Enemy : Character {
 
     public override void Death()
     {
-        MyAnimator.SetTrigger("idle");
         MyAnimator.ResetTrigger("die");
+        MyAnimator.SetTrigger("idle");
         healthStat.CurrentVal = healthStat.MaxValue;
         transform.position = startPos;
     }
