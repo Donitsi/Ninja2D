@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public delegate void DeadEventHandler();
 
@@ -46,6 +47,13 @@ public class Player : Character {
 
     public Rigidbody2D MyRigidbody { get; set; }
 
+    private AudioSource[] audioSounds;
+
+    private AudioSource playerShoot;
+
+    private AudioSource playerDead;
+
+    private AudioSource playerTakeDamage;
 
     
 
@@ -74,6 +82,15 @@ public class Player : Character {
         // reference to rigidbody
         MyRigidbody = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
+
+
+
+        audioSounds = GetComponents<AudioSource>();
+
+        playerShoot = audioSounds[0];
+        playerTakeDamage = audioSounds[1];
+        playerTakeDamage = audioSounds[2];
+            
     }
 
     void Update()
@@ -263,12 +280,12 @@ public class Player : Character {
 
     public override IEnumerator TakeDamage()
     {
-        healthStat.CurrentVal -= 10;
 
         if (!immortal)
         {
             if (!IsDead)
             {
+                healthStat.CurrentVal -= 10;
                 myAnimator.SetTrigger("damage");
                 immortal = true;
                 StartCoroutine(IndicateImmortal());
@@ -289,9 +306,16 @@ public class Player : Character {
 
     public override void Death()
     {
-        MyRigidbody.velocity = Vector2.zero;
-        myAnimator.SetTrigger("idle");
-        healthStat.CurrentVal = healthStat.MaxValue;
-        transform.position = startPos;
+        //MyRigidbody.velocity = Vector2.zero;
+        //myAnimator.SetTrigger("idle");
+        //healthStat.CurrentVal = healthStat.MaxValue;
+        //transform.position = startPos;
+
+        StartCoroutine(GameOver());
+    }
+
+    IEnumerator GameOver()
+    {
+        yield return SceneManager.LoadSceneAsync("GameOver");
     }
 }
