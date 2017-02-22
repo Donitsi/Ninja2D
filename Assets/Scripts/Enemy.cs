@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,11 +15,19 @@ public class Enemy : Character {
 
     public bool OnGround { get; set; }
 
+    private Vector2 startPos;
+
     [SerializeField]
     private float meleeRange;
 
     [SerializeField]
     private float shootRange;
+
+    [SerializeField]
+    private Transform leftEdge;
+
+    [SerializeField]
+    private Transform rightEdge;
 
     public bool inMeleeRange
     {
@@ -46,6 +55,14 @@ public class Enemy : Character {
         }
     }
 
+    public override bool IsDead
+    {
+        get
+        {
+            return healthStat.CurrentVal <= 0;
+        }
+    }
+
 
     //private Animator enemyAnim;
 
@@ -53,15 +70,22 @@ public class Enemy : Character {
     public override void Start () {
         base.Start();
         ChangeState(new IdleState());
-
+        Player.Instance.Dead += new DeadEventHandler(RemoveTarget);
         MyAnimator = GetComponent<Animator>();
 
 	}
 	// Update is called once per frame
 	void Update () {
-        currentState.Execute();
 
-        LookAtTarget();
+        if (!IsDead)
+        {
+            if (!TakingDamage)
+            {
+                currentState.Execute();
+            }
+
+            LookAtTarget();
+        }
 	}
 
     private void LookAtTarget()
@@ -74,6 +98,12 @@ public class Enemy : Character {
                 ChangeDirection();
             }
         }
+    }
+
+    public void RemoveTarget()
+    {
+        Target = null;
+        ChangeState(new PatrolState());
     }
 
     public void ChangeState(IEnemyState newState)
@@ -120,7 +150,7 @@ public class Enemy : Character {
         }
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
+    public override void OnTriggerEnter2D(Collider2D collision)
     {
         //if (collision.gameObject.tag == "Player")
         //{
@@ -132,7 +162,7 @@ public class Enemy : Character {
         //{
         //    ChangeDirection();
         //}
-
+        base.OnTriggerEnter2D(collision);
         currentState.OnTriggerEnter(collision);
     }
 
@@ -141,10 +171,20 @@ public class Enemy : Character {
     {
         if (!Attack)
         {
-            //MyAnimator.SetFloat("speed", 1);
-            gameObject.GetComponent<Animator>().SetFloat("speed", 1);
 
-            transform.Translate(GetDirection() * (movementSpeed * Time.deltaTime));
+            if ((GetDirection().x > 0 && transform.position.x < rightEdge.position.x) || (GetDirection().x < 0 && transform.position.x > leftEdge.position.x))
+            {
+                //MyAnimator.SetFloat("speed", 1);
+                gameObject.GetComponent<Animator>().SetFloat("speed", 1);
+
+                transform.Translate(GetDirection() * (movementSpeed * Time.deltaTime));
+            }
+
+            else if (currentState is PatrolState)
+            {
+                ChangeDirection();
+            }
+           
         }
         
     }
@@ -166,5 +206,27 @@ public class Enemy : Character {
             base.ShootPref(value);
         }
 
+    }
+
+    public override IEnumerator TakeDamage()
+    {
+        healthStat.CurrentVal -= 10;
+        if (!IsDead)
+        {
+            MyAnimator.SetTrigger("damage");
+        }
+        else
+        {
+            MyAnimator.SetTrigger("die");
+            yield return null;
+        }
+    }
+
+    public override void Death()
+    {
+        MyAnimator.SetTrigger("idle");
+        MyAnimator.ResetTrigger("die");
+        healthStat.CurrentVal = healthStat.MaxValue;
+        transform.position = startPos;
     }
 }

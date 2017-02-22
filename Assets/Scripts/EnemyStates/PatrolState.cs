@@ -7,11 +7,12 @@ public class PatrolState : IEnemyState
 {
     private Enemy enemy;
     private float patrolTimer;
-    private float patrolDuration = 5;
+    private float patrolDuration;
 
     public void Enter(Enemy enemy)
     {
         this.enemy = enemy;
+        patrolDuration = UnityEngine.Random.Range(1, 10);
     }
 
     public void Execute()
@@ -32,16 +33,21 @@ public class PatrolState : IEnemyState
 
     public void OnTriggerEnter(Collider2D other)
     {
-        if(other.tag == "Edge")
-        {
-            enemy.ChangeDirection();
-        }
+        //if(other.tag == "Edge")
+        //{
+        //    enemy.ChangeDirection();
+        //}
 
         if (other.gameObject.tag == "Player")
         {
             //MyAnimator.SetTrigger("attack");
             enemy.MyAnimator.SetTrigger("attack");
             Debug.Log("Attacking");
+        }
+
+        if (other.tag == "Bullet" || other.tag =="Sword")
+        {
+            enemy.Target = Player.Instance.gameObject;
         }
     }
 

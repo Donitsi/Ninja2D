@@ -1,10 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+public delegate void DeadEventHandler();
 
 public class Player : Character {
 
     private static Player instance;
+
+    public event DeadEventHandler Dead; 
 
     public static Player Instance
     {
@@ -24,25 +29,48 @@ public class Player : Character {
     }
 
 
-
     //private bool facingRight;
 
     public bool OnGround { get; set; }
 
+    private SpriteRenderer spriteRenderer;
 
     [SerializeField]
     private bool airControl;
+    private bool immortal = false;
 
+    [SerializeField]
+    private float immortalTime;
+
+    private Vector2 startPos;
 
     public Rigidbody2D MyRigidbody { get; set; }
+
+
+    
+
+    public override bool IsDead
+    {
+        get
+        {
+            if (healthStat.CurrentVal <= 0)
+            {
+                OnDead();
+            }
+            
+            return healthStat.CurrentVal <= 0;
+        }
+    }
 
 
 
     // Use this for initialization
     public override void Start () {
 
-        facingRight = true;
+        //facingRight = true;
         base.Start();
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
         // reference to rigidbody
         MyRigidbody = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
@@ -50,23 +78,45 @@ public class Player : Character {
 
     void Update()
     {
-        HandleInput();
+        
+
+        if (!TakingDamage && !IsDead)
+        {
+
+            if (transform.position.y <= -10f)
+            {
+                Death();
+            }
+
+            HandleInput();
+        }
     }
 
     // Update is called once per frame
     void FixedUpdate () {
 
-        float horizontal = Input.GetAxis("Horizontal");
+        if (!TakingDamage && !IsDead)
+        {
+            float horizontal = Input.GetAxis("Horizontal");
 
-        OnGround = IsGrounded();
+            OnGround = IsGrounded();
 
-        HandleMovement(horizontal);
+            HandleMovement(horizontal);
 
-        Flip(horizontal);
+            Flip(horizontal);
 
-        HandleLayers();
+            HandleLayers();
+        }
 
 	}
+
+    public void OnDead()
+    {
+        if(Dead != null)
+        {
+            Dead();
+        }
+    }
 
     private void HandleMovement(float horizontal)
     {
@@ -189,14 +239,59 @@ public class Player : Character {
         
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.tag == "Bullet")
-        {
-            //Destroy(gameObject);
+    //void OnCollisionEnter2D(Collision2D collision)
+    //{
+    //    if (collision.gameObject.tag == "Bullet")
+    //    {
+    //        //Destroy(gameObject);
 
-            // Destroy bullet when hit
-            Destroy(collision.gameObject);
+    //        // Destroy bullet when hit
+    //        Destroy(collision.gameObject);
+    //    }
+    //}
+
+    private IEnumerator IndicateImmortal()
+    {
+        while (immortal)
+        {
+            spriteRenderer.enabled = false;
+            yield return new WaitForSeconds(.1f);
+            spriteRenderer.enabled = true;
+            yield return new WaitForSeconds(.1f);
         }
+    }
+
+    public override IEnumerator TakeDamage()
+    {
+        healthStat.CurrentVal -= 10;
+
+        if (!immortal)
+        {
+            if (!IsDead)
+            {
+                myAnimator.SetTrigger("damage");
+                immortal = true;
+                StartCoroutine(IndicateImmortal());
+
+                yield return new WaitForSeconds(immortalTime);
+
+                immortal = false;
+            }
+
+            else
+            {
+                myAnimator.SetLayerWeight(1, 0);
+                myAnimator.SetTrigger("die");
+            }
+
+        }
+    }
+
+    public override void Death()
+    {
+        MyRigidbody.velocity = Vector2.zero;
+        myAnimator.SetTrigger("idle");
+        healthStat.CurrentVal = healthStat.MaxValue;
+        transform.position = startPos;
     }
 }

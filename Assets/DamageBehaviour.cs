@@ -2,30 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SlideBehaviour : StateMachineBehaviour {
-
-    private Vector2 slideSize = new Vector2(1.67f, 1.9f);
-    private Vector2 slideOffset = new Vector2(-0.37f, -1.4f);
-
-    private Vector2 size;
-    private Vector2 offset;
-
-    private BoxCollider2D boxCollider;
+public class DamageBehaviour : StateMachineBehaviour {
 
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        Player.Instance.Slide = true;
-
-        if (boxCollider == null)
-        {
-            boxCollider = Player.Instance.GetComponent<BoxCollider2D>();
-            size = boxCollider.size;
-            offset = boxCollider.offset;
-        }
-
-        boxCollider.size = slideSize;
-        boxCollider.offset = slideOffset;
+        animator.GetComponent<Character>().TakingDamage = true;
+        animator.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
@@ -36,10 +19,7 @@ public class SlideBehaviour : StateMachineBehaviour {
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        Player.Instance.Slide = false;
-        animator.ResetTrigger("slide");
-        boxCollider.size = size;
-        boxCollider.offset = offset;
+        animator.GetComponent<Character>().TakingDamage = false;
     }
 
     // OnStateMove is called right after Animator.OnAnimatorMove(). Code that processes and affects root motion should be implemented here
